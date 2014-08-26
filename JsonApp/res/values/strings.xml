@@ -4,5 +4,7 @@
     <string name="app_name">JsonApp</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+    <string name="name_label">Name:</string>
+    <string name="image">Image per Name</string>
 
 </resources>

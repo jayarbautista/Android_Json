@@ -1,34 +1,127 @@
 package com.android.exercises.jsonapp;
 
-import android.support.v7.app.ActionBarActivity;
-import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.HashMap;
 
-public class JsonActivity extends ActionBarActivity {
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import android.app.Activity;
+import android.app.ProgressDialog;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ListView;
+import android.widget.Toast;
+
+public class JsonActivity extends Activity {
+
+	String myjsonstring;
+
+	static final String TAG_NAME = "name";
+	static String TAG_PHOTO = "image";
+
+	JSONObject jsonobject;
+    JSONArray jsonarray;
+    ListView listview;
+    ListViewAdapter adapter;
+    ProgressDialog mProgressDialog;
+    ArrayList<HashMap<String, String>> arraylist;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_json);
+		setContentView(R.layout.activity_list);
+		
+		arraylist = new ArrayList<HashMap<String, String>>();
+		 
+        //ListView lv = getListView();
+ 
+
+		new GetAddress().execute();
 	}
 
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.json, menu);
-		return true;
-	}
+	private class GetAddress extends AsyncTask<Void, Void, Void> {
 
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		// Handle action bar item clicks here. The action bar will
-		// automatically handle clicks on the Home/Up button, so long
-		// as you specify a parent activity in AndroidManifest.xml.
-		int id = item.getItemId();
-		if (id == R.id.action_settings) {
-			return true;
+		@Override
+		protected void onPreExecute() {
+			super.onPreExecute();
+			// Showing progress dialog
+			mProgressDialog = new ProgressDialog(JsonActivity.this);
+			mProgressDialog.setMessage("Please wait...");
+			mProgressDialog.setCancelable(false);
+			mProgressDialog.show();
+
 		}
-		return super.onOptionsItemSelected(item);
+
+		@Override
+		protected Void doInBackground(Void... arg0) {
+
+			// Reading text file from assets folder
+			StringBuffer sb = new StringBuffer();
+			BufferedReader br = null;
+			try {
+				br = new BufferedReader(new InputStreamReader(getAssets().open(
+						"jsondemo.txt")));
+				String temp;
+				while ((temp = br.readLine()) != null)
+					sb.append(temp);
+			} catch (IOException e) {
+				e.printStackTrace();
+			} finally {
+				try {
+					br.close(); // stop reading
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+
+			myjsonstring = sb.toString();
+			
+			try {
+                JSONObject jsonObj = new JSONObject(myjsonstring);
+                 
+                // Getting JSON Array node
+                jsonarray = jsonObj.getJSONArray("address_book");
+
+                // looping through All Contacts
+                for (int i = 0; i < jsonarray.length(); i++) {
+                    jsonobject = jsonarray.getJSONObject(i);
+
+                    // tmp hashmap for single contact
+                    HashMap<String, String> book = new HashMap<String, String>();
+
+                    // adding each child node to HashMap key => value
+                    book.put(TAG_NAME, jsonobject.getString(TAG_NAME));
+                    book.put(TAG_PHOTO, jsonobject.getString(TAG_PHOTO));
+
+                    // adding contact to contact list
+                    arraylist.add(book);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+			return null;
+		}
+
+		@Override
+		protected void onPostExecute(Void result) {
+			 // Locate the listview in listview_main.xml
+            listview = (ListView) findViewById(R.id.list);
+            // Pass the results into ListViewAdapter.java
+            adapter = new ListViewAdapter(JsonActivity.this, arraylist);
+            // Set the adapter to the ListView
+            listview.setAdapter(adapter);
+            
+            // Close the progressdialog
+            mProgressDialog.dismiss();
+		}
 	}
 }

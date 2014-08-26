@@ -1,0 +1,19 @@
+{
+"address_book":
+	[
+		{
+		"name":"Bill Gates",
+		"image":R.drawable.ic_launcher
+		},
+
+		{
+		"name":"James Gosling",
+		"image":R.drawable.ic_launcher
+		},
+
+		{
+		"name":"Andy Rubin",
+		"image":R.drawable.ic_launcher
+		}
+	]
+}
